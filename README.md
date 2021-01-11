@@ -4,6 +4,19 @@
 
 MongoDB is a NoSQL database that stores data as JSON-like documents. Documents store related information together and use the MongoDB query language (MQL) for access.
 
+```js
+/*
+Basic fundamentals of mongodb(syntax,structure).
+CRUD operations(Insert , Update/Save , remove , find)
+Aggregation Commands(Aggregate,distinct,count,etc.)
+Aggregation pipeline.
+Indexing,Limit,skip,sort etc.
+Projection.
+Use of Embedded/Sub-document.
+Regex search and text search.
+*/
+```
+
 ### Query
 
 ```SQL
@@ -35,10 +48,34 @@ db.users.insertMany([
   },
   {
     name: "john",
-    age: 23,
+    age: 24,
   },
 ]); // insert Multiple documents at once
+
+/* 
+mongo data was generally insert in odered way
+the data you are trying to insert already is in the database. And then an unordered insert with ordered
+false can be your solution because you don't care about any documents that fail,
+they already are in the database,
+that's fine for you
+and you can add everything which is not in there yet.
+*/
+db.users.insertMany([
+  {
+    _id_: "1",
+    age: 23,
+  },
+  {
+     _id_: "1",  // skips with error
+    age: 23, 
+  },
+  {
+     _id_: "2",
+    age: 24,
+  }
+],{ordered:false}); // 
 ```
+WriteConcern: Data should be stored and you can control the level of guarantee of that to happen with the writeConcern option
 
 #### READ
 
@@ -274,4 +311,15 @@ db.help()
 
 # to get help that can run on the collection run
 db.user.help()
+```
+
+#### Import Data to Mongo
+
+```bash
+# tv.json is data file
+# -d is the Database name
+# -c Collection Name
+# --jsonArray tv.json contain an array of document so we jsonArray [it inform to mongo that there are multiple documents]
+# --drop if this collection already exist it drop and readded
+mongoimport tv.json -d movieData -c movies --jsonArray --drop
 ```
