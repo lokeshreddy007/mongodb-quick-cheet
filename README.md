@@ -89,3 +89,80 @@ DeleteMany(filter,options)
 db.users.deleteMany()                //  delete all users documents
 db.users.deleteMany({},{gender:"M"}) //  delete where gender
 ```
+
+#### Projection
+
+Helps to get only required data from the document(Mogodb) which help can leave unnecessary data which is not required
+
+```js
+db.users.find({},{name:1}).prettty() // Will get data only with id,name by default other value are point to 0 and they are left out 
+db.users.find({},{name:1,_id:0}).prettty() // will get data only with name, to neglect _id is we have to mention in the query
+```
+
+#### Embedded Documents
+
+```js
+// Insert Data to users table
+ db.users.insertOne({name:'john',age:23,address:{street:"1756 Hood",city:"san diego",state:'CA',zipcode:92117}})
+
+ // Output data 
+ {
+	"_id" : ObjectId("5ffc5ae6ceff1b7524c0e870"),
+	"name" : "john",
+	"age" : 23,
+	"address" : {
+		"street" : "1756 Hood",
+		"city" : "san diego",
+		"state" : "CA",
+		"zipcode" : 92117
+	}
+}
+
+ // Even Array
+  db.users.insertOne({name:'bro',age:23,address:[{street:"1756 Hood",city:"san diego",state:'CA',zipcode:92117},{hobbies:["playing,watching"]}]})
+
+ // Output data 
+  {
+	"_id" : ObjectId("5ffc5be6ceff1b7524c0e871"),
+	"name" : "john",
+	"age" : 23,
+	"address" : [
+		{
+			"street" : "1756 Hood",
+			"city" : "san diego",
+			"state" : "CA",
+			"zipcode" : 92117
+		},
+		{
+			"hobbies" : [
+				"playing,watching"
+			]
+		}
+	]
+}
+// to get embedded Document
+
+db.users.find({"address.zipcode":92117})
+
+```
+
+#### Date Types
+
+```js
+Text
+Boolean
+Number -> Integer(int32),NumberLong(int64),NumberDecimal(12.99)
+ObjectId
+Date ->ISODate, TImeStamp
+Embedded Documnets
+Array
+```
+
+#### Relationship 
+
+1. One To One Relations - Embedded
+1. One To One - Using References
+2. One To Many - Embedded
+2. One To Many - Using References
+3. Many To Many - Embedded
+3. Many To Many - Using References
