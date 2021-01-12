@@ -274,12 +274,85 @@ db.sales.find({$expr: {$gt: [$cond: {if : {$gte: ["$volume",190]}, then: {subtra
   // 2 document 200 is > 190 so it subtracted with 30 === 200 - 30 = 170
   // now 170 is not > 177 so this document is not returned
 ```
-##### Project Operators
-1. $
-2. $elemMatch
-3. $meta
-4. slice
+#### Array
+**Name**|**Description**
+:-----:|:-----:
+$all|Matches arrays that contain all elements specified in the query.
+$elemMatch|Selects documents if element in the array field matches all the specified $elemMatch conditions.
+$size|Selects documents if the array field is a specified size.
 
+```js
+// users - Data for below example
+{
+    _id_: "1",
+    name: "bro",
+    age : 80,
+    hobbies: ["playing","eating","watching"]
+  },
+db.users.find({hobbies: {size:3}}).pretty{} // get document where hobbies are equal to 3 
+db.movies.find({genre:{all: ["action","horror"]}}).pretty() 
+// it ensures that these two elements exist in a genre but it doesn't care about the order. And therefore it find both documents even though the order is different within genre.
+
+// Demo data
+{
+    _id_: "1",
+    name: "bro",
+    age : 80,
+    hobbies: [
+      {
+        title: "Sports",
+        frequency : 3
+      },
+      {
+        title: "Playing",
+        frequency : 6
+      },
+    ]
+  },
+  {
+    _id_: "2",
+    name: "john",
+    age : 24,
+    hobbies: [
+      {
+        title: "Sports",
+        frequency : 2
+      },
+      {
+        title: "Playing",
+        frequency : 3
+      },
+    ]
+  },
+// To get the data where hobbies Sport and frequency >=3
+db.users.find({$and: [{"hobbies.title":"Sports"},{"hobbies.frequency":{$gte : 3}}]}).pretty() // it return both the documet which is we want
+db.users.find({hobbies:{elemMatch:{title:"Sports",frequency:{$gte:3}}}}).pretty() // this return only the 1st Document
+// 
+```
+
+#### Projection
+
+Helps to get only required data from the document(Mogodb) which help can leave unnecessary data which is not required
+
+```js
+db.users.find({},{name:1}).prettty() // Will get data only with id,name by default other value are point to 0 and they are left out 
+db.users.find({},{name:1,_id:0}).prettty() // will get data only with name, to neglect _id is we have to mention in the query
+```
+
+##### Project Operators
+**Name**|**Description**
+:-----:|:-----:
+$|Projects the first element in an array that matches the query condition.
+$elemMatch|Projects the first element in an array that matches the specified $elemMatch condition.
+$meta|Projects the available per-document metadata.
+$slice|Limits the number of elements projected from an array. Supports skip and limit slices.
+
+```js
+db.movies.find({genres: "Drame"},{"genres.$":1}).pretty()
+db.movies.find({genres: "Drame"},{genres:{$elemMatch:{$eq:"Horror"}}}).pretty()
+db.movies.find({"rating.average":{$gt:9}},{geners: {$slice:2}, name:1}).pretty() // get documet where rating is >9 and get 1st two element from geners
+db.movies.find({"rating.average":{$gt:9}},{geners: {$slice:[1,2]}, name:1}).pretty()  // skip 1 elemnt and get next 2 elemnt from geners
+```
 #### Update
 
 ```js
@@ -311,14 +384,6 @@ db.users.deleteMany()                //  delete all users documents
 db.users.deleteMany({},{gender:"M"}) //  delete where gender
 ```
 
-#### Projection
-
-Helps to get only required data from the document(Mogodb) which help can leave unnecessary data which is not required
-
-```js
-db.users.find({},{name:1}).prettty() // Will get data only with id,name by default other value are point to 0 and they are left out 
-db.users.find({},{name:1,_id:0}).prettty() // will get data only with name, to neglect _id is we have to mention in the query
-```
 
 #### Embedded Documents
 
@@ -379,6 +444,20 @@ Embedded Documnets
 Array
 ```
 
+#### Cursors
+```js
+db.movies.find().count()
+// save cursor and use next method
+const data  = db.movies.find()
+data.next()
+// Sorting  1= asc -1 = desc
+db.movies.find().sort({"rating.average": -1}).pretty()
+db.movies.find().sort({"rating.average": 1, runtime: 1}).pretty()
+// Skip and limit
+db.movies.find().sort({"rating.average": -1}).skip(10).limit(10).pretty()
+
+
+```
 #### Relationship 
 
 1. One To One Relations - Embedded
