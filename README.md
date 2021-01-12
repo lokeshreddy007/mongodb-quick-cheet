@@ -390,6 +390,7 @@ db.users.updateMany({hobbies:{$elemMatch: {title:"Sports",frequency:{$gte:3}}}},
 // updated all array element
 db.users.updateMany({totalAge:{$gt:30}},{$inc:{"hobbies.$[].frequency":-1}})
 // Addind element to Arrays
+db.users.updateOne({name:"Maria"},{$push:{hobbies:{title:"Sports",frequency:2}}}) // can add duplicate element
 db.users.updateOne({name:"Maria"},{$push:{hobbies:{title:"Sports",frequency:2}}})
 db.users.updateOne({name:"Maria"},{$push:{hobbies:{$each : [{title:"Sports",frequency:1},{title:"Hiking",frequency:2}],$sort:{frequency:-1},$slice:1}}}) // sort and slice are avaiable if requried
 // Removing elemnt from Array
@@ -410,6 +411,8 @@ DeleteMany(filter,options)
 
 db.users.deleteMany()                //  delete all users documents
 db.users.deleteMany({},{gender:"M"}) //  delete where gender
+// drop collection
+db.users.drop()
 ```
 
 
@@ -619,4 +622,133 @@ mongoimport tv.json -d movieData -c movies --jsonArray --drop
 #2021-01-12T11:37:27.515+0530	imported 240 documents
 
 
+```
+
+#### Indexes
+Indexes support the efficient execution of queries in MongoDB. Without indexes, MongoDB must perform a collection scan, i.e. scan every document in a collection, to select those documents that match the query statement. If an appropriate index exists for a query, MongoDB can use the index to limit the number of documents it must inspect.
+
+Indexes are special data structures [1] that store a small portion of the collection’s data set in an easy to traverse form. The index stores the value of a specific field or set of fields, ordered by the value of the field. The ordering of the index entries supports efficient equality matches and range-based query operations. In addition, MongoDB can return sorted results by using the ordering in the index.
+
+
+```js
+// import persons.json
+db.contacts.explain().find({"dob.age": {$gt:60}})
+/*
+The Above query gives which scan mogodb used
+*/
+db.contacts.explain("executionStats").find({"dob.age": {$gt:60}})
+/*
+The Above query gives which scan mogodb used and will get the exection time it took and how to document it has looked
+*/
+
+// Create Index
+db.contacts.createIndex({"dob.age":1}) // 1 - asc and -1 - desc
+// After creating a index the execute time is less compare to above one
+db.contacts.explain("executionStats").find({"dob.age": {$gt:60}})
+
+// Building Indexes in Background
+db.contacts.createIndex({"dob.age":1},{background:true}) // not lock database , which good for production
+
+// drop index
+db.contacts.dropIndex({"dob.age":1})
+
+// Create Compound Index
+db.contacts.createIndex({"dob.age":1,gender: 1}) // it will not create two indexes, it only one index  with paires of age and gender like this-- 23 M
+
+// to get data using index
+db.contacts.explain().find({"dob.age": {$gt:60},gender:"male"}) // index scan
+db.contacts.explain().find({"dob.age": {$gt:60}}) // index scan
+// you can only use compound Index from left to right
+db.contacts.explain().find({gender:"male"}) // coll  scan
+
+// Sorting using Indexes
+db.contacts.explain().find({"dob.age": 60}).sort({gender:1}) // asc oder because 1 
+
+// Partial Filters
+db.contacts.createIndex({"dob.age":1},{partialExpression: {gender:"male"}}) // index create only for the gender with male and left remaining one
+
+// To keep this in mind while use Partail Filter
+/*
+since we say nothing about the gender in our query here, it would be too risky to use
+the index for that because the index is a partial index and mongodb as a top priority ensures
+that you don't lose any data.
+*/
+db.contacts.explain().find({"dob.age":{$gt:60}} // Coll Scan 
+
+/*
+The difference is that for the partial index, the overall index simply is smaller, there really are only the ages of males stored in there, the female keys are not stored in the index and therefore, the index size is smaller leading to a lower impact on your hard drive, if you insert a new female, that will never have to be added to your index.
+*/
+db.contacts.explain().find({"dob.age":{$gt:60},gender:"Male"} // Index scan
+
+
+db.contacts.createIndex({"dob.age":1},{partialExpression: {"dob.age":{$gt:60}}}) // index create only for the age > 60 and left remaining one
+
+// Text Indexes
+{
+  title: "A ship book",
+  description: "This book is awesome, i like this one"
+}
+db.products.createIndex({description: "text"})
+
+// get Data using Text Indexes
+db.products.find({$text: {$search: "book"}}) // search as word
+db.products.find({$text: {$search: "\"book is awesome\""}}) // search as a sentences
+
+// to print data 1st with high meta scroce which given by mogodb itself
+db.products.find({$text: {$search: "book awesome"}},{scroe: {$meta: "textScore"}})
+
+// sort by meta Score
+db.products.find({$text: {$search: "book awesome"}},{scroe: {$meta: "textScore"}}).sort({score:{$meta: "textScore"}})
+
+// Exclude Text 
+db.products.find({$text: {$search: "book -awesome"}}) // excilude text awesome
+
+// Combined Text Indexes
+db.products.createIndex({title:"text",description:"text"})
+
+// Language and using weight
+db.products.createIndex({title:"text",description:"text"}{default_language:"english",weights:{title:1,description:10}}) // lang - english by default weight to important
+
+// Get data using Combined Text Indexes
+// get document if the text matches in title or description
+db.products.find({$text: {$search: "ship"}}) // get example document
+
+
+// To get Indexes
+db.contacts.getIndexes() // removes all the stop word amd stores all the keyword in array
+```
+
+#####  Index Restrictions
+```js
+if you have a query that will return a large portion or the majority of your documents, an index can actually be slower because you then just have an extra step to go through your almost entire index list and then you have to go to the collection and get all these documents, so you then just have an extra step because if you do a full collection scan, it can be faster.
+
+the idea of index is to quickly let you get to a narrow subset of your document list and not to the majority of that.
+```
+#### Time to Live Index
+
+```js
+// It can be used single field indexes, does not work on compound indexes. it works on data objects
+db.seesions.createIndex({createdAt:1},{expireAfterSeconds: 10})
+```
+#### Covered Query. 
+```js
+A covered query is a query that can be satisfied entirely using an index and does not have to examine any documents. An index covers a query when all of the following apply: all the fields in the query are part of an index, and. all the fields returned in the results are in the same index.
+
+// Example
+// user collection data 
+
+{
+  name : "bro"
+},
+{
+  name: "john"
+}
+// Create a index
+db.users.createIndex({name:1})
+
+// find using index 
+db.contacts.explain("executionStats").find({name:"bro"}) // Index scan but not covered query because it examined document
+
+// Covered Query of about example
+db.contacts.explain("executionStats").find({name:"bro"},{_id:0,name:1}) // covered query beacuse the name is already present in indexed 
 ```
