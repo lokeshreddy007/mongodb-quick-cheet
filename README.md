@@ -160,7 +160,7 @@ db.users.findOne({gender:"M"}) // return the 1st documents where gender = M
 
 ##### Query Selectors & Projection Operators
 
-###### Query Selectors
+##### Query Selectors
 1. Comparison
 2. Evaluation
 3. Logical
@@ -197,8 +197,35 @@ db.movies.find({genres:["Drama"]}).pretty() // return only with Drama genres
 
 db.movies.find({runtime:{$in: [30,42]}}).pretty() 
 db.movies.find({runtime:{$nin: [30,42]}}).pretty()
+
+// Count
+db.movies.find({runtime:{$lt: 60}).count() 
+
 ```
-###### Project Operators
+#### Logical 
+
+**Name**|**Description**
+:-----:|:-----:
+$and|Joins query clauses with a logical AND returns all documents that match the conditions of both clauses.
+$not|Inverts the effect of a query expression and returns documents that do not match the query expression.
+$nor|Joins query clauses with a logical NOR returns all documents that fail to match both clauses.
+$or|Joins query clauses with a logical OR returns all documents that match the conditions of either clause.
+
+```js
+db.movies.find({$or: [{"rating.average": {$lt:5}},{"rating.average": {$gt:9.3}}]}).pretty() // less than 5 and greater than 9.3
+db.movies.find({$or: [{"rating.average": {$lt:5}},{"rating.average": {$gt:9.3}}]}).count() 
+db.movies.find({$nor: [{"rating.average": {$lt:5}},{"rating.average": {$gt:9.3}}]}).pretty() // reverse of $or [not less than 5 and not greater than 9.3]
+db.movies.find({$and: [{"rating.average": {$gt:9}},{genres:"Drama"}]}).pretty() //  works same next one
+db.movies.find({"rating.average": {$gt:9}},{genres:"Drama"})..pretty()          // works same as above one by default mongo db use and operator if there are multiple conditions
+// AND Logical Operators is useful there is same name in object 
+
+db.movies.find({genres:"Drama",genres:"Horror"}) ---> it becomes as db.movies.find({genres:"Horror"}) and we get only genres= horror in such cases we can use AND
+db.movies.find({$and :[{genres:"Drama"},{genres:"Horror"}]})
+db.movies.find({runtime:{$not: {$eq:60}}}).pretty() 
+
+```
+
+##### Project Operators
 1. $
 2. $elemMatch
 3. $meta
