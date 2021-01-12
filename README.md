@@ -224,7 +224,56 @@ db.movies.find({$and :[{genres:"Drama"},{genres:"Horror"}]})
 db.movies.find({runtime:{$not: {$eq:60}}}).pretty() 
 
 ```
+#### Elements
+**Name**|**Description**
+:-----:|:-----:
+$exists|Matches documents that have the specified field.
+$type|Selects documents if a field is of the specified type.
 
+```js
+db.users.find({age: {$exists: true}}).pretty()
+db.users.find({age: {$exists: true, $gte: 30}}).pretty()
+db.users.find({age: {$exists: true, $ne: null}}).pretty()
+db.users.find({age: {$type: ["number"]}}).pretty()
+db.users.find({age: {$type: ["number","string"]}}).pretty()
+```
+#### Evaluation
+**Name**|**Description**
+:-----:|:-----:
+$expr|Allows use of aggregation expressions within the query language.
+$jsonSchema|Validate documents against the given JSON Schema.
+$mod|Performs a modulo operation on the value of a field and selects documents with a specified result.
+$regex|Selects documents where values match a specified regular expression.
+$text|Performs text search.
+ |  
+
+```js
+db.movies.find({summary:{$regex: /musiacl/}}).pretty()
+// Sales - Data for below example
+{
+    _id_: "1",
+    volume: 89,
+    target : 80
+  },
+  {
+     _id_: "2", 
+   volume: 200,
+    target : 177
+  },
+
+db.sales.find({$expr:{$gt : ["$volume","$target"]}}).pretty() // get data were volume is greater than target
+// Advance Query
+db.sales.find({$expr: {$gt: [$cond: {if : {$gte: ["$volume",190]}, then: {subtract: ["$volume",30]}, else: "$volume"}},"$target"]}}).pretty() // cond -  condition if volume is > 190 then subtract volume by 30 else return volume then compare with target and return result
+
+// Output 
+{
+    _id_: "1",
+    volume: 89,
+    target : 80
+  },  //  89 > 80  so...
+  // 2 document 200 is > 190 so it subtracted with 30 === 200 - 30 = 170
+  // now 170 is not > 177 so this document is not returned
+```
 ##### Project Operators
 1. $
 2. $elemMatch
