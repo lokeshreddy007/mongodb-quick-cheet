@@ -339,7 +339,7 @@ db.users.find({},{name:1}).prettty() // Will get data only with id,name by defau
 db.users.find({},{name:1,_id:0}).prettty() // will get data only with name, to neglect _id is we have to mention in the query
 ```
 
-##### Project Operators
+##### Projection Operators
 **Name**|**Description**
 :-----:|:-----:
 $|Projects the first element in an array that matches the query condition.
@@ -368,6 +368,34 @@ db.users.updateMany({},{$set: {gender: "M"}}) // updated all document to gender=
 ```
 ```js
 replaceONe(filter,data,options)
+```
+
+```js
+// Increment
+db.users.updateOne({name:"john"},{$inc:{age:1}}) // increament age bu 1 where name = john
+// Decrement
+db.users.updateOne({name:"john"},{$inc:{age:-1}}) // Decrement age bu 1 where name = john
+db.users.updateOne({name:"john"},{$inc:{age:1},{$set: {gender: "M"}}}) // increament age bu 1 where name = john and add gender = m
+// Get rid og Fields
+db.users.updateMany({gender:"M"},{$unset:{phone: ""}}) // removes phones filed in the document where gender = M
+
+// Renaming Fields
+db.users.updateMany({},{$rename: {age: "totalAge"}})
+
+// upsert - if the document does not exist it creates
+db.users.updateOne({name:"check"},{$set:{age:23}},{upsert: true}) // by default is false
+// Update Matched Array Element
+db.users.updateMany({hobbies:{$elemMatch: {title:"Sports",frequency:{$gte:3}}}},{$set:{"hobbies.$.highFrequency":true}}) // add highfrequecy where title is sport and frequcny is greater than 3
+
+// updated all array element
+db.users.updateMany({totalAge:{$gt:30}},{$inc:{"hobbies.$[].frequency":-1}})
+// Addind element to Arrays
+db.users.updateOne({name:"Maria"},{$push:{hobbies:{title:"Sports",frequency:2}}})
+db.users.updateOne({name:"Maria"},{$push:{hobbies:{$each : [{title:"Sports",frequency:1},{title:"Hiking",frequency:2}],$sort:{frequency:-1},$slice:1}}}) // sort and slice are avaiable if requried
+// Removing elemnt from Array
+db.users.updateOne({name:"john"},{$pull:{hobbies:{title:"Sports"}}})
+// to remove the last element in the Array
+db.users.updateOne({name:"john"},{$pop:{hobbies:1}} // 1 removes the last element use -1 to remove the fiest element)        
 ```
 #### Delete
 
