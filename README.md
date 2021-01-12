@@ -181,6 +181,23 @@ $lt|Matches values that are less than a specified value.
 $lte|Matches values that are less than or equal to a specified value.
 $ne|Matches all values that are not equal to a specified value.
 $nin|Matches none of the values specified in an array.
+
+```js
+db.movies.find({runtime:60}).pretty()
+db.movies.find({runtime:{$eq: 60}).pretty() 
+db.movies.find({runtime:{$ne: 60}).pretty()
+db.movies.find({runtime:{$lt: 60}).pretty() 
+db.movies.find({runtime:{$lte: 60}).pretty() 
+db.movies.find({runtime:{$gt: 60}).pretty() 
+db.movies.find({runtime:{$gte: 60}).pretty() 
+// Embedded Documents and Arrays
+db.movies.find({"rating.average":{$gt: 7}}).pretty() 
+db.movies.find({genres:"Drama"}).pretty() // return the document which consist of Drama
+db.movies.find({genres:["Drama"]}).pretty() // return only with Drama genres 
+
+db.movies.find({runtime:{$in: [30,42]}}).pretty() 
+db.movies.find({runtime:{$nin: [30,42]}}).pretty()
+```
 ###### Project Operators
 1. $
 2. $elemMatch
