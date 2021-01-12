@@ -95,6 +95,97 @@ findone(filter,options)
 db.users.findOne({gender:"M"}) // return the 1st documents where gender = M
 
 ```
+##### Example Data which to work 
+```js
+{
+   "_id":{
+      "$oid":"5ffd3d910f5027b35addd771"
+   },
+   "id":1,
+   "url":"http://www.tvmaze.com/shows/1/under-the-dome",
+   "name":"Under the Dome",
+   "type":"Scripted",
+   "language":"English",
+   "genres":[
+      "Drama",
+      "Science-Fiction",
+      "Thriller"
+   ],
+   "status":"Ended",
+   "runtime":60,
+   "premiered":"2013-06-24",
+   "officialSite":"http://www.cbs.com/shows/under-the-dome/",
+   "schedule":{
+      "time":"22:00",
+      "days":[
+         "Thursday"
+      ]
+   },
+   "rating":{
+      "average":6.5
+   },
+   "weight":91,
+   "network":{
+      "id":2,
+      "name":"CBS",
+      "country":{
+         "name":"United States",
+         "code":"US",
+         "timezone":"America/New_York"
+      }
+   },
+   "webChannel":null,
+   "externals":{
+      "tvrage":25988,
+      "thetvdb":264492,
+      "imdb":"tt1553656"
+   },
+   "image":{
+      "medium":"http://static.tvmaze.com/uploads/images/medium_portrait/0/1.jpg",
+      "original":"http://static.tvmaze.com/uploads/images/original_untouched/0/1.jpg"
+   },
+   "summary":"<p><b>Under the Dome</b> is the story of a small town that is suddenly and inexplicably sealed off from the rest of the world by an enormous transparent dome. The town's inhabitants must deal with surviving the post-apocalyptic conditions while searching for answers about the dome, where it came from and if and when it will go away.</p>",
+   "updated":1529612668,
+   "_links":{
+      "self":{
+         "href":"http://api.tvmaze.com/shows/1"
+      },
+      "previousepisode":{
+         "href":"http://api.tvmaze.com/episodes/185054"
+      }
+   }
+}
+```
+#### Methods,Filter and Operators
+
+##### Query Selectors & Projection Operators
+
+###### Query Selectors
+1. Comparison
+2. Evaluation
+3. Logical
+4. Array
+5. Element
+6. Comments
+7. Geospatial 
+
+#### Comparison
+
+**Name**|**Description**
+:-----:|:-----:
+$eq|Matches values that are equal to a specified value.
+$gt|Matches values that are greater than a specified value.
+$gte|Matches values that are greater than or equal to a specified value.
+$in|Matches any of the values specified in an array.
+$lt|Matches values that are less than a specified value.
+$lte|Matches values that are less than or equal to a specified value.
+$ne|Matches all values that are not equal to a specified value.
+$nin|Matches none of the values specified in an array.
+###### Project Operators
+1. $
+2. $elemMatch
+3. $meta
+4. slice
 
 #### Update
 
@@ -322,4 +413,10 @@ db.user.help()
 # --jsonArray tv.json contain an array of document so we jsonArray [it inform to mongo that there are multiple documents]
 # --drop if this collection already exist it drop and readded
 mongoimport tv.json -d movieData -c movies --jsonArray --drop
+# Output
+
+#2021-01-12T11:37:27.444+0530	connected to: localhost
+#2021-01-12T11:37:27.515+0530	imported 240 documents
+
+
 ```
