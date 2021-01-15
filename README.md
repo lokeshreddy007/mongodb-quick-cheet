@@ -752,3 +752,113 @@ db.contacts.explain("executionStats").find({name:"bro"}) // Index scan but not c
 // Covered Query of about example
 db.contacts.explain("executionStats").find({name:"bro"},{_id:0,name:1}) // covered query beacuse the name is already present in indexed 
 ```
+
+#### Aggregation
+For reference[Aggregation](https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline/#aggregation-pipeline-operator-reference)
+```js
+Aggregation operations process data records and return computed results. Aggregation operations group values from multiple documents together, and can perform a variety of operations on the grouped data to return a single result.
+```
+
+```js
+// Data
+{
+   "gender":"male",
+   "name":{
+      "title":"mr",
+      "first":"victor",
+      "last":"pedersen"
+   },
+   "location":{
+      "street":"2156 stenbjergvej",
+      "city":"billum",
+      "state":"nordjylland",
+      "postcode":56649,
+      "coordinates":{
+         "latitude":"-29.8113",
+         "longitude":"-31.0208"
+      },
+      "timezone":{
+         "offset":"+5:30",
+         "description":"Bombay, Calcutta, Madras, New Delhi"
+      }
+   },
+   "email":"victor.pedersen@example.com",
+   "login":{
+      "uuid":"fbb3c298-2cea-4415-84d1-74233525c325",
+      "username":"smallbutterfly536",
+      "password":"down",
+      "salt":"iW5QrgwW",
+      "md5":"3cc8b8a4d69321a408cd46174e163594",
+      "sha1":"681c0353b34fae08422686eea190e1c09472fc1f",
+      "sha256":"eb5251e929c56dfd19fc597123ed6ec2d0130a2c3c1bf8fc9c2ff8f29830a3b7"
+   },
+   "dob":{
+      "date":"1959-02-19T23:56:23Z",
+      "age":59
+   },
+   "registered":{
+      "date":"2004-07-07T22:37:39Z",
+      "age":14
+   },
+   "phone":"23138213",
+   "cell":"30393606",
+   "id":{
+      "name":"CPR",
+      "value":"506102-2208"
+   },
+   "picture":{
+      "large":"https://randomuser.me/api/portraits/men/23.jpg",
+      "medium":"https://randomuser.me/api/portraits/med/men/23.jpg",
+      "thumbnail":"https://randomuser.me/api/portraits/thumb/men/23.jpg"
+   },
+   "nat":"DK"
+}
+// Match
+db.persons.aggregate([
+  {
+    $match: {gender:"female"}
+  }
+])
+
+// Group  and sort data 
+db.persons.aggregate([
+  {
+    $match: {gender:"female"}
+  },
+  {
+    $group:{_id: { state: "$location.state"},totalFemale: {sum:1}}
+  },
+  {$sort: {totalFemale: -1}}
+]).pretty()
+
+// Projection in Aggregation
+db.persons.aggregate([
+  {
+    $project: {_id:0,gender:1,fullName: {$concat:["$name.first"," ", "#name.last"] }}
+  }
+])
+
+// Projection in Aggregation and convert 1st letter og anem to upper 
+db.persons.aggregate([
+  {
+    $project: {_id:0,gender:1,fullName: {
+      $concat: [
+        {$toUpper: {$substrCP: ['$name.first',0,1]}},
+        {
+          $substrCP: [
+            '$name.first',1,{$subtract: [{$strLenCP:'$name.first'},1]}
+          ]
+        },
+        ' ',
+        {$toUpper: {$substrCP: ['$name.last',0,1]}},
+        {
+          $substrCP: [
+            '$name.last',1,{$subtract: [{$strLenCP:'$name.last'},1]}
+          ]
+        }
+      ]
+    }}
+  }
+])
+
+```
